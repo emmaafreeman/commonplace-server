@@ -1,0 +1,26 @@
+[
+  {
+    "model": "commonplaceapi.topic",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "name": "topic 1"
+    }
+  },
+  {
+    "model": "commonplaceapi.topic",
+    "pk": 2,
+    "fields": {
+      "user": 1,
+      "name": "topic 2"
+    }
+  },
+  {
+    "model": "commonplaceapi.topic",
+    "pk": 3,
+    "fields": {
+      "user": 1,
+      "name": "topic 3"
+    }
+  }
+]

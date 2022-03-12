@@ -1,0 +1,22 @@
+[
+  {
+    "model": "commonplaceapi.entry",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "title": "This is a title",
+      "body": "This is a body",
+      "created_on": "2006-10-25 14:30:59"
+    }
+  },
+  {
+    "model": "commonplaceapi.entry",
+    "pk": 2,
+    "fields": {
+      "user": 1,
+      "title": "This is a title",
+      "body": "This is a body",
+      "created_on": "2006-10-25 14:30:59"
+    }
+  }
+]
