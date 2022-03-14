@@ -15,10 +15,19 @@ Including another URLconf
 """
 from django.conf.urls import include
 from django.contrib import admin
+from rest_framework import routers
 from django.urls import path
-from commonplaceapi.views import register_user, login_user
+from commonplaceapi.views import register_user, login_user, EntryView
+
+
+router = routers.DefaultRouter(trailing_slash=False)
+router.register(r'entries', EntryView, 'entry')
+# router.register(r'games', GameView, 'game')
+# router.register(r'events', EventView, 'event')
+# router.register(r'profile', ProfileView, 'profile')
 
 urlpatterns = [
+    path('', include(router.urls)),
     path('admin/', admin.site.urls),
     path('register', register_user),
     path('login', login_user),
