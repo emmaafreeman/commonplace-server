@@ -7,87 +7,87 @@ from rest_framework.decorators import action
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
-from commonplaceapi.models import Entry, CommonplaceUser
+from commonplaceapi.models import Topic, CommonplaceUser, Entry
 
-class EntryView(ViewSet):
-    """ Commonplace Entry Viewset"""
+class TopicView(ViewSet):
+    """ Commonplace Topic Viewset"""
 
     def create(self, request):
-        """Handle POST operations for Entries
+        """Handle POST operations for Topics
 
         Returns:
-            Response -- JSON serialized Entry instance
+            Response -- JSON serialized Topic instance
         """
+
         user = CommonplaceUser.objects.get(user=request.auth.user)
 
-        entry = Entry()
-        entry.title = request.data["title"]
-        entry.body = request.data["body"]
-        entry.user = user
+        topic = Topic()
+        topic.name = request.data["name"]
+        
+        # entry_topics = Topic.objects.get(pk=request.data["gameTypeId"])
+        # topic.entry_topics = game_type
 
         try:
-            entry.save()
-            serializer = EntrySerializer(entry, context={'request': request})
+            topic.save()
+            serializer = TopicSerializer(topic, context={'request': request})
             return Response(serializer.data)
         except ValidationError as ex:
             return Response({"reason": ex.message}, status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, pk=None):
-        """Handle GET requests for single Entry
+        """Handle GET requests for single Topic
 
         Returns:
             Response -- JSON serialized Entry instance
         """
         try:
-            entry = Entry.objects.get(pk=pk)
-            serializer = EntrySerializer(entry, context={'request': request})
+            topic = Topic.objects.get(pk=pk)
+            serializer = TopicSerializer(topic, context={'request': request})
             return Response(serializer.data)
-        except Exception as ex:
+        except Exception:
             return HttpResponseServerError(ex)
 
     def update(self, request, pk=None):
-        """Handle PUT requests for an Entry
+        """Handle PUT requests for a Topic
 
         Returns:
             Response -- Empty body with 204 status code
         """
         user = CommonplaceUser.objects.get(user=request.auth.user)
 
-        entry = Entry()
-        entry.title = request.data["title"]
-        entry.body = request.data["body"]
-        entry.user = user
+        topic = Topic()
+        topic.name = request.data["name"]
 
-        entry.save()
+        topic.save()
 
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
     def destroy(self, request, pk=None):
-        """Handle DELETE requests for an Entry
+        """Handle DELETE requests for a Topic
 
         Returns:
             Response -- 200, 404, or 500 status code
         """
         try:
-            entry = Entry.objects.get(pk=pk)
-            entry.delete()
+            topic = Topic.objects.get(pk=pk)
+            topic.delete()
 
             return Response({}, status=status.HTTP_204_NO_CONTENT)
 
-        except Entry.DoesNotExist as ex:
+        except Topic.DoesNotExist as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
 
         except Exception as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def list(self, request):
-        """Handle GET requests to Entries resource
+        """Handle GET requests to Topics resource
 
         Returns:
-            Response -- JSON serialized list of Entries
+            Response -- JSON serialized list of Topics
         """
         # Get all game records from the database
-        entries = Entry.objects.all()
+        entries = Topic.objects.all()
 
         # Support filtering games by type
         #    http://localhost:8000/games?type=1
@@ -97,7 +97,7 @@ class EntryView(ViewSet):
         # if game_type is not None:
         #     games = games.filter(game_type__id=game_type)
 
-        serializer = EntrySerializer(
+        serializer = TopicSerializer(
             entries, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -195,8 +195,8 @@ class EntrySerializer(serializers.ModelSerializer):
           'body', 'created_on')
 
 
-# class GameSerializer(serializers.ModelSerializer):
-#     """JSON serializer for games"""
-#     class Meta:
-#         model = Game
-#         fields = ('id', 'title', 'maker', 'number_of_players', 'skill_level')
+class TopicSerializer(serializers.ModelSerializer):
+    """JSON serializer for topics"""
+    class Meta:
+        model = Topic
+        fields = ('id', 'name')
