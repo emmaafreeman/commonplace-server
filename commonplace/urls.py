@@ -17,12 +17,12 @@ from django.conf.urls import include
 from django.contrib import admin
 from rest_framework import routers
 from django.urls import path
-from commonplaceapi.views import register_user, login_user, EntryView
+from commonplaceapi.views import register_user, login_user, EntryView, TopicView
 
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'entries', EntryView, 'entry')
-# router.register(r'games', GameView, 'game')
+router.register(r'topics', TopicView, 'topic')
 # router.register(r'events', EventView, 'event')
 # router.register(r'profile', ProfileView, 'profile')
 
