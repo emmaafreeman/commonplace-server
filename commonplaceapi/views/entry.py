@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
-from commonplaceapi.models import Entry, CommonplaceUser
+from commonplaceapi.models import Entry, CommonplaceUser, Topic
 
 class EntryView(ViewSet):
     """ Commonplace Entry Viewset"""
@@ -27,6 +27,7 @@ class EntryView(ViewSet):
 
         try:
             entry.save()
+            entry.entry_topics.set(request.data["entry_topics"])
             serializer = EntrySerializer(entry, context={'request': request})
             return Response(serializer.data)
         except ValidationError as ex:
@@ -53,10 +54,12 @@ class EntryView(ViewSet):
         """
         user = CommonplaceUser.objects.get(user=request.auth.user)
 
-        entry = Entry()
+        entry = Entry.objects.get(pk=pk)
         entry.title = request.data["title"]
         entry.body = request.data["body"]
         entry.user = user
+        entry.entry_topics.set(request.data["entry_topics"])
+
 
         entry.save()
 
@@ -166,37 +169,27 @@ class EntryView(ViewSet):
     #             return Response({'message': ex.args[0]})
 
 
-class EventUserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """JSON serializer for event organizer's related Django user"""
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email']
 
 
-# class EventGamerSerializer(serializers.ModelSerializer):
-#     """JSON serializer for event organizer"""
-#     user = EventUserSerializer(many=False)
+class TopicSerializer(serializers.ModelSerializer):
+    """JSON serializer for topics"""
+    class Meta:
+        model = Topic
+        fields = ('id', 'name')
 
-#     class Meta:
-#         model = Gamer
-#         fields = ['user']
 
 class EntrySerializer(serializers.ModelSerializer):
     """JSON serializer for events"""
 
-    # USE THIS FOR TOPICS LATER
-    # organizer = EventGamerSerializer(many=False)
-    # game = GameSerializer(many=False)
-    user = EventUserSerializer(many=False)
+    user = UserSerializer(many=False)
+    entry_topics = TopicSerializer(many=True)
 
     class Meta:
         model = Entry
         fields = ('id', 'user', 'title',
-          'body', 'created_on')
-
-
-# class GameSerializer(serializers.ModelSerializer):
-#     """JSON serializer for games"""
-#     class Meta:
-#         model = Game
-#         fields = ('id', 'title', 'maker', 'number_of_players', 'skill_level')
+          'body', 'created_on', 'entry_topics')
