@@ -27,16 +27,16 @@ https://dbdiagram.io/d/6217b0c1485e43354310fe16
 
 Open a terminal window and go to the `commonplace-server` directory.
 
-# pipenv
+#### pipenv
 
 1. `pip3 install --user pipx`
 2. `pipx install pipenv`
 
-# Start a virtual environment
+#### Start a virtual environment
 
 1. `pipenv shell`
 
-# Django/Pylint
+#### Django/Pylint
 
 1. `pipenv install django autopep8 pylint djangorestframework django-cors-headers pylint-django`
 
