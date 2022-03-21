@@ -30,7 +30,7 @@ class EntryView(ViewSet):
             entry.save()
             entry.entry_topics.set(request.data["entry_topics"])
             serializer = EntrySerializer(entry, context={'request': request})
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         except ValidationError as ex:
             return Response({"reason": ex.message}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -45,7 +45,7 @@ class EntryView(ViewSet):
             serializer = EntrySerializer(entry, context={'request': request})
             return Response(serializer.data)
         except Exception as ex:
-            return HttpResponseServerError(ex)
+            return HttpResponseServerError(ex, status=status.HTTP_404_NOT_FOUND)
 
     def update(self, request, pk=None):
         """Handle PUT requests for an Entry
