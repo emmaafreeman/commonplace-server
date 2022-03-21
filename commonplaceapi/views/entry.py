@@ -89,9 +89,17 @@ class EntryView(ViewSet):
         Returns:
             Response -- JSON serialized list of Entries
         """
+        user = CommonplaceUser.objects.get(user=request.auth.user)
+
+        current_user_id = user.id
+
+
         # Get all game records from the database
         entries = Entry.objects.all()
-
+        
+        if current_user_id is not None:
+            entries = entries.filter(user_id=current_user_id)
+       
         # Support filtering games by type
         #    http://localhost:8000/games?type=1
         #

@@ -23,8 +23,6 @@ from commonplaceapi.views import register_user, login_user, EntryView, TopicView
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'entries', EntryView, 'entry')
 router.register(r'topics', TopicView, 'topic')
-# router.register(r'events', EventView, 'event')
-# router.register(r'profile', ProfileView, 'profile')
 
 urlpatterns = [
     path('', include(router.urls)),
