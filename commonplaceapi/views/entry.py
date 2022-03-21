@@ -8,6 +8,7 @@ from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from commonplaceapi.models import Entry, CommonplaceUser, Topic
+from django.db.models import Q
 
 class EntryView(ViewSet):
     """ Commonplace Entry Viewset"""
@@ -99,6 +100,15 @@ class EntryView(ViewSet):
         
         if current_user_id is not None:
             entries = entries.filter(user_id=current_user_id)
+        
+        title_query = self.request.query_params.get('title', None)
+        body_query = self.request.query_params.get('body', None)
+        
+        if title_query and body_query is not None:
+            entries = entries.filter(Q(title__contains=title_query) | Q(body__contains=body_query))
+        
+        # if body_query is not None:
+        #     entries = entries.filter(body__contains=body_query)
        
         # Support filtering games by type
         #    http://localhost:8000/games?type=1
@@ -111,9 +121,7 @@ class EntryView(ViewSet):
         serializer = EntrySerializer(
             entries, many=True, context={'request': request})
         return Response(serializer.data)
-
-        
-    #MAY NEED THIS TO FILTER BY TOPIC
+    
     # def list(self, request):
     #     """Handle GET requests to events resource
 
@@ -121,22 +129,19 @@ class EntryView(ViewSet):
     #         Response -- JSON serialized list of events
     #     """
     #     # Get the current authenticated user
-    #     gamer = Gamer.objects.get(user=request.auth.user)
-    #     events = Event.objects.all()
+    #     user = CommonplaceUser.objects.get(user=request.auth.user)
+    #     entries = Entry.objects.all()
+    #     title_query = self.request.query_params.get('title', None)
+    #     body_query = self.request.query_params.get('body', None)
+        
+    #     if title_query is not None:
+    #         entries = entries.filter(title=title_query)
+        
+    #     if body_query is not None:
+    #         entries = entries.filter(body=body_query)
 
-    #     # Set the `joined` property on every event
-    #     for event in events:
-    #         if gamer in event.attendees.all():
-    #         # Check to see if the gamer is in the attendees list on the event
-    #             event.joined = True
-
-    #     # Support filtering events by game
-    #     game = self.request.query_params.get('gameId', None)
-    #     if game is not None:
-    #         events = events.filter(game__id=type)
-
-    #     serializer = EventSerializer(
-    #         events, many=True, context={'request': request})
+    #     serializer = EntrySerializer(
+    #         entries, many=True, context={'request': request})
     #     return Response(serializer.data)
  
     # @action(methods=['post', 'delete'], detail=True)
