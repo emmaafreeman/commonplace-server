@@ -5,6 +5,6 @@ User = get_user_model()
 
 
 class CommonplaceUser(models.Model):
-    """Commonplace user, connected to auth_user table"""
+    """Commonplace User, connected to auth_user table"""
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)

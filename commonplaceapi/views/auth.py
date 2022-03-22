@@ -55,7 +55,7 @@ def register_user(request):
         last_name=request.data['last_name']
     )
 
-    # Now save the extra info in the levelupapi_gamer table
+    # Now save the extra info in the commonplaceapi_commonplace_user table
     commonplace_user = CommonplaceUser.objects.create(
         user=new_user
     )

@@ -1,14 +1,15 @@
-"""View module for handling requests about events"""
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseServerError
 from rest_framework import status
-from rest_framework.decorators import action
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers
 from commonplaceapi.models import Entry, CommonplaceUser, Topic
 from django.db.models import Q
+
+User = get_user_model()
+
 
 class EntryView(ViewSet):
     """ Commonplace Entry Viewset"""
@@ -19,18 +20,29 @@ class EntryView(ViewSet):
         Returns:
             Response -- JSON serialized Entry instance
         """
+        # Get user object of currently authenticated user
         user = CommonplaceUser.objects.get(user=request.auth.user)
 
+        # Create new Entry instance and set fields equal to data entered by user
         entry = Entry()
         entry.title = request.data["title"]
         entry.body = request.data["body"]
+        
+        # Assign current user data to new entry
         entry.user = user
 
         try:
+            # Save new entry
             entry.save()
+
+            # Set entry_topics field equal to data entered by user
             entry.entry_topics.set(request.data["entry_topics"])
+            
+            # Determine which serializer to use and return 201 status
             serializer = EntrySerializer(entry, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        # Handle exceptions
         except ValidationError as ex:
             return Response({"reason": ex.message}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -41,9 +53,14 @@ class EntryView(ViewSet):
             Response -- JSON serialized Entry instance
         """
         try:
+            # Get entry by id
             entry = Entry.objects.get(pk=pk)
+
+            # Determine which serializer to use and return requested entry
             serializer = EntrySerializer(entry, context={'request': request})
             return Response(serializer.data)
+        
+        # Return 404 if entry does not exist
         except Exception as ex:
             return HttpResponseServerError(ex, status=status.HTTP_404_NOT_FOUND)
 
@@ -53,17 +70,25 @@ class EntryView(ViewSet):
         Returns:
             Response -- Empty body with 204 status code
         """
+        
+        # Get user object of currently authenticated user
         user = CommonplaceUser.objects.get(user=request.auth.user)
 
+        # Get entry by id
         entry = Entry.objects.get(pk=pk)
+        
+        # Set fields equal to new data entered by user
         entry.title = request.data["title"]
         entry.body = request.data["body"]
-        entry.user = user
         entry.entry_topics.set(request.data["entry_topics"])
 
+        # Assign current user data to entry
+        entry.user = user
 
+        # Save changes to entry
         entry.save()
 
+        # Return 204
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
     def destroy(self, request, pk=None):
@@ -73,14 +98,20 @@ class EntryView(ViewSet):
             Response -- 200, 404, or 500 status code
         """
         try:
+            # Get entry by id
             entry = Entry.objects.get(pk=pk)
+
+            # Delete specified entry
             entry.delete()
 
+            # Return 204
             return Response({}, status=status.HTTP_204_NO_CONTENT)
 
+        # Return 404 if entry does not exist
         except Entry.DoesNotExist as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
 
+        # Handle other exceptions
         except Exception as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -90,96 +121,32 @@ class EntryView(ViewSet):
         Returns:
             Response -- JSON serialized list of Entries
         """
+        
+        # Get user object of currently authenticated user
         user = CommonplaceUser.objects.get(user=request.auth.user)
 
+        # Get id of current user
         current_user_id = user.id
-
 
         # Get all game records from the database
         entries = Entry.objects.all()
         
+        # Filter entries by user's id
         if current_user_id is not None:
             entries = entries.filter(user_id=current_user_id)
         
+        # Get query params from request url
         title_query = self.request.query_params.get('title', None)
         body_query = self.request.query_params.get('body', None)
         
+        # If query params are not None, filter entries if either title or body contain the params
         if title_query and body_query is not None:
             entries = entries.filter(Q(title__contains=title_query) | Q(body__contains=body_query))
         
-        # if body_query is not None:
-        #     entries = entries.filter(body__contains=body_query)
-       
-        # Support filtering games by type
-        #    http://localhost:8000/games?type=1
-        #
-        # That URL will retrieve all tabletop games
-        # game_type = self.request.query_params.get('type', None)
-        # if game_type is not None:
-        #     games = games.filter(game_type__id=game_type)
-
+        # Determine which serializer to use and return requested entries
         serializer = EntrySerializer(
             entries, many=True, context={'request': request})
         return Response(serializer.data)
-    
-    # def list(self, request):
-    #     """Handle GET requests to events resource
-
-    #     Returns:
-    #         Response -- JSON serialized list of events
-    #     """
-    #     # Get the current authenticated user
-    #     user = CommonplaceUser.objects.get(user=request.auth.user)
-    #     entries = Entry.objects.all()
-    #     title_query = self.request.query_params.get('title', None)
-    #     body_query = self.request.query_params.get('body', None)
-        
-    #     if title_query is not None:
-    #         entries = entries.filter(title=title_query)
-        
-    #     if body_query is not None:
-    #         entries = entries.filter(body=body_query)
-
-    #     serializer = EntrySerializer(
-    #         entries, many=True, context={'request': request})
-    #     return Response(serializer.data)
- 
-    # @action(methods=['post', 'delete'], detail=True)
-    # def signup(self, request, pk=None):
-    #     """Managing gamers signing up for events"""
-    #     # Django uses the `Authorization` header to determine
-    #     # which user is making the request to sign up
-    #     gamer = Gamer.objects.get(user=request.auth.user)
-
-    #     try:
-    #         # Handle the case if the client specifies a game
-    #         # that doesn't exist
-    #         event = Event.objects.get(pk=pk)
-    #     except Event.DoesNotExist:
-    #         return Response(
-    #             {'message': 'Event does not exist.'},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
-
-    #     # A gamer wants to sign up for an event
-    #     if request.method == "POST":
-    #         try:
-    #             # Using the attendees field on the event makes it simple to add a gamer to the event
-    #             # .add(gamer) will insert into the join table a new row the gamer_id and the event_id
-    #             event.attendees.add(gamer)
-    #             return Response({}, status=status.HTTP_201_CREATED)
-    #         except Exception as ex:
-    #             return Response({'message': ex.args[0]})
-
-    #     # User wants to leave a previously joined event
-    #     elif request.method == "DELETE":
-    #         try:
-    #             # The many to many relationship has a .remove method that removes the gamer from the attendees list
-    #             # The method deletes the row in the join table that has the gamer_id and event_id
-    #             event.attendees.remove(gamer)
-    #             return Response(None, status=status.HTTP_204_NO_CONTENT)
-    #         except Exception as ex:
-    #             return Response({'message': ex.args[0]})
 
 
 class UserSerializer(serializers.ModelSerializer):

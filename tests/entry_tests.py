@@ -8,7 +8,7 @@ from commonplaceapi.models.commonplace_user import CommonplaceUser
 
 class EntryTests(APITestCase):
     """
-        This is a class
+        Tests for EntryView functions
     """
 
     def setUp(self):
@@ -34,19 +34,16 @@ class EntryTests(APITestCase):
         # Assert that a user was created
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # SEED DATABASE WITH ONE GAME TYPE
-        # This is needed because the API does not expose a /gametypes
-        # endpoint for creating game types
+        # Seed database with one topic
         topic = Topic()
         topic.name = "this is a topic"
         topic.save()
-
 
     def test_create_entry(self):
         """
         Ensure we can create a new entry.
         """
-        # DEFINE ENTRY PROPERTIES
+        # Define entry properties
         url = "/entries"
         data = {
             "user": 1,
@@ -71,9 +68,6 @@ class EntryTests(APITestCase):
         # Assert that the properties on the created resource are correct
         self.assertEqual(json_response["title"], "This is a title")
         self.assertEqual(json_response["body"], "This is a body")
-        # self.assertEqual(json_response["created_on"], "2006-10-25 14:30:59")
-        # self.assertEqual(json_response["entry_topics"], [1])
-    
 
     def test_get_entry(self):
         """
@@ -81,7 +75,7 @@ class EntryTests(APITestCase):
         """
         user = CommonplaceUser.objects.get(pk=1)
 
-        # Seed the database with a game
+        # Seed the database with an entry
         entry = Entry()
         entry.title = "This is a title"
         entry.body = "This is a body"
@@ -105,9 +99,6 @@ class EntryTests(APITestCase):
         # Assert that the values are correct
         self.assertEqual(json_response["title"], "This is a title")
         self.assertEqual(json_response["body"], "This is a body")
-        # self.assertEqual(json_response["created_on"], "2006-10-25 14:30:59")
-        # self.assertEqual(json_response["entry_topics"], [{'id': 1, 'name': 'this is a topic'}])
-
 
     def test_change_entry(self):
         """
@@ -123,7 +114,7 @@ class EntryTests(APITestCase):
         entry.save()
         entry.entry_topics.set([1])
 
-        # DEFINE NEW PROPERTIES FOR GAME
+        # Define new properties for entry
         data = {
             "user": 1,
             "title": "This is a new title",
@@ -136,7 +127,7 @@ class EntryTests(APITestCase):
         response = self.client.put(f"/entries/{entry.id}", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # GET GAME AGAIN TO VERIFY CHANGES
+        # Get entry again to verify change
         response = self.client.get(f"/entries/{entry.id}")
         json_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -144,9 +135,6 @@ class EntryTests(APITestCase):
         # Assert that the properties are correct
         self.assertEqual(json_response["title"], "This is a new title")
         self.assertEqual(json_response["body"], "This is a new body")
-        # self.assertEqual(json_response["created_on"], "2006-10-25 14:30:59")
-        # self.assertEqual(json_response["entry_topics"], [{'id': 1, 'name': 'this is a topic'}])
-
 
     def test_delete_entry(self):
         """
@@ -166,6 +154,6 @@ class EntryTests(APITestCase):
         response = self.client.delete(f"/entries/{entry.id}")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # GET GAME AGAIN TO VERIFY 404 response
+        # Get entry again to verify change
         response = self.client.get(f"/entries/{entry.id}")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
